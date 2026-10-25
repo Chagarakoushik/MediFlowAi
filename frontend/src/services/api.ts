@@ -9,7 +9,7 @@ import type {
   AutomationLog
 } from '../types';
 
-const API_BASE = '/api/v1';
+const API_BASE = 'https://mediflowai-6g4r.onrender.com/api/v1';
 
 async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, {
@@ -51,7 +51,7 @@ export const api = {
     if (filters?.status && filters.status !== 'All') params.append('status', filters.status);
     if (filters?.follow_up_status && filters.follow_up_status !== 'All') params.append('follow_up_status', filters.follow_up_status);
     if (filters?.risk_level && filters.risk_level !== 'All') params.append('risk_level', filters.risk_level);
-    
+
     const qs = params.toString();
     return fetchJson<Appointment[]>(`${API_BASE}/appointments${qs ? `?${qs}` : ''}`);
   },
