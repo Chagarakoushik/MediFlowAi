@@ -46,3 +46,6 @@ frontend/.vite/
 *.swo
 .DS_Store
 Thumbs.db
+
+# Local automation workflows (not for version control)
+automation/

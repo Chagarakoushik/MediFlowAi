@@ -46,8 +46,8 @@ async def dispatch_to_webhook(
             "ai_model": appointment.ai_model_used or "careflow-ai"
         },
         "metadata": {
-            "source": "CareFlow AI Automation Engine",
-            "workflow_compatible": "n8n-healthcare-followup-v1"
+            "source": "MediFlowAi Automation Engine",
+            "workflow_compatible": "n8n-mediflowai-followup-v1"
         }
     }
     
@@ -58,9 +58,9 @@ async def dispatch_to_webhook(
         
         simulated_response = {
             "status": "200_OK_SIMULATED",
-            "message": f"Webhook payload received and queued in n8n execution queue for channel {channel}",
+            "message": f"Webhook payload received and queued in n8n execution queue for email dispatch",
             "execution_id": f"sim_exec_{int(time.time()*1000)}",
-            "dispatched_to": appointment.patient_phone if channel in ["SMS", "WhatsApp"] else appointment.patient_email,
+            "dispatched_to": appointment.patient_email or appointment.patient_phone,
             "delivery_status": "queued"
         }
         

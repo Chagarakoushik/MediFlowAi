@@ -15,12 +15,12 @@ except ImportError:
     GENAI_AVAILABLE = False
 
 SYSTEM_SAFETY_INSTRUCTIONS = """
-You are CareFlow AI, an intelligent, empathetic healthcare follow-up reminder assistant.
+You are MediFlowAi, an intelligent, empathetic healthcare follow-up reminder assistant for Indian healthcare clinics and hospitals.
 CRITICAL CLINICAL SAFETY BOUNDARIES:
 1. NEVER provide a diagnosis, change medication dosages, or recommend off-label treatments.
 2. NEVER say 'You have disease X' or contradict the attending physician.
-3. If the patient has post-surgical red flags (severe bleeding, fever >101F, chest pain, difficulty breathing, acute swelling), immediately advise emergency care (dial 911 / emergency contact).
-4. Strictly generate ONLY the reminder message appropriate for the requested channel.
+3. If the patient has post-surgical red flags (severe bleeding, fever >101F, chest pain, difficulty breathing, acute swelling), immediately advise emergency care (dial 112 / 108 for ambulance or visit nearest hospital casualty).
+4. Strictly generate ONLY the reminder message appropriate for the requested channel (Email format with Subject line).
 5. All reminders are drafts that MUST BE REVIEWED by clinical staff before dispatch.
 6. Tone must remain professional, respectful, empathetic, and clear.
 """
@@ -60,13 +60,13 @@ def perform_safety_audit(text: str, channel: str) -> Dict[str, Any]:
     # 3. Check for emergency escalation presence if acute terms found
     acute_terms = ["chest pain", "shortness of breath", "severe fever", "infection", "emergency", "swelling"]
     has_acute = any(term in lower for term in acute_terms)
-    has_emergency_redirect = any(redirect in lower for redirect in ["911", "emergency", "urgent care", "call clinic immediately"])
+    has_emergency_redirect = any(redirect in lower for redirect in ["112", "108", "911", "emergency", "urgent care", "casualty", "call clinic immediately"])
 
     emergency_redirect_present = False
     if has_acute:
         emergency_redirect_present = has_emergency_redirect
         if not has_emergency_redirect:
-            flags.append("High-risk context missing emergency contact/911 redirection")
+            flags.append("High-risk context missing emergency contact/112/108 redirection")
     else:
         emergency_redirect_present = True
 
@@ -201,16 +201,16 @@ def generate_simulated_reminder(
                 f"• Visit Type: {appointment_type}\n"
                 f"• Date: {appointment_date}\n"
                 f"• Time: {appointment_time}\n"
-                f"• Location: Suite 402, MediFlow Healthcare Center\n"
+                f"• Location: Suite 402, MediFlow Healthcare Center, Indiranagar, Bengaluru\n"
                 f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
                 f"CLINICAL PREPARATION & DISCHARGE GUIDELINES:\n"
-                f"{discharge_instructions or 'Please bring a photo ID, your insurance card, and an updated list of all medications you are currently taking.'}\n\n"
+                f"{discharge_instructions or 'Please bring your Aadhaar / photo ID, previous test reports, and an updated list of all medications you are currently taking.'}\n\n"
                 f"NEED TO RESCHEDULE?\n"
-                f"If you need to adjust your appointment time, please call our care line at (555) 019-2834 at least 24 hours in advance.\n\n"
+                f"If you need to adjust your appointment time, please call our care line at +91 80 4912 3456 at least 24 hours in advance.\n\n"
                 f"IMPORTANT SAFETY NOTICE:\n"
-                f"This communication is for informational and scheduling purposes only and does not constitute acute emergency triage. If you experience severe chest pain, sudden numbness, high fever, or difficulty breathing, call 911 or proceed to the nearest emergency department immediately.\n\n"
+                f"This communication is for informational and scheduling purposes only and does not constitute acute emergency triage. If you experience severe chest pain, sudden breathlessness, high fever, or acute symptoms, call 112 / 108 or proceed to the nearest emergency casualty department immediately.\n\n"
                 f"Warm regards,\n"
-                f"The CareFlow Clinical Team\n"
+                f"The MediFlowAi Clinical Team\n"
                 f"MediFlow Healthcare System"
             )
             
@@ -219,7 +219,7 @@ def generate_simulated_reminder(
     return {
         "text": text,
         "subject": subject,
-        "model": "careflow-simulated-guardrail-v1",
+        "model": "mediflow-simulated-guardrail-v1",
         "is_simulated": True,
         "safety_audit": safety
     }
@@ -254,7 +254,7 @@ def generate_gemini_reminder(
         )
         
         prompt = f"""
-Generate an appointment follow-up reminder for a healthcare clinic.
+Generate an appointment follow-up reminder for an Indian healthcare clinic.
 Patient Name: {patient_name}
 Physician: {doctor_name}
 Department: {department}
@@ -262,7 +262,7 @@ Visit Type: {appointment_type}
 Appointment Date & Time: {appointment_date} at {appointment_time}
 Discharge / Care Instructions: {discharge_instructions or 'Standard routine follow-up'}
 Clinical Background (Fictional): {clinical_notes or 'Stable recovery'}
-Delivery Channel: {channel} (Format appropriately: concise for SMS/WhatsApp, professional letter for Email, step-by-step dialogue for Phone Script)
+Delivery Channel: {channel} (Format appropriately: professional medical letter for Email with Subject line)
 Tone: {tone}
 Language: {language}
 Additional Clinic Notes: {custom_instructions or 'None'}
@@ -270,7 +270,7 @@ Additional Clinic Notes: {custom_instructions or 'None'}
 RULES:
 - Do not make clinical diagnoses.
 - Keep safety boundaries.
-- Include clinic contact (555-019-2834) and emergency reminder (call 911 if acute).
+- Include clinic contact (+91 80 4912 3456) and emergency reminder (call 112 / 108 if acute symptoms occur).
 - If channel is Email, provide 'SUBJECT: [subject line]' on line 1, then the body.
 """
         response = model.generate_content(prompt)
